@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Holy Bible — Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --parchment: #EFE7D6;
+    --parchment-deep: #E4D9C2;
+    --ink: #26221B;
+    --ink-soft: #57503f;
+    --rubric: #8C2F2B;
+    --gold: #A6802E;
+    --teal: #1F3B3C;
+    --teal-deep: #16292A;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body{
+    min-height:100vh;
+    background: var(--teal-deep);
+    color: var(--ink);
+    font-family: 'EB Garamond', serif;
+    display:flex;
+  }
+  ::selection{ background: var(--gold); color:#fff; }
+
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  /* ---------- Sidebar ---------- */
+  #sidebar{
+    width: 300px;
+    min-width: 300px;
+    background: var(--teal);
+    color: #E8E2D2;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    border-right: 1px solid #0f2223;
+  }
+  .brand{
+    padding: 24px 22px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .brand .eyebrow{
+    font-family:'Inter',sans-serif;
+    font-size:10.5px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color: var(--gold);
+    margin:0 0 6px;
+  }
+  .brand h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: 26px;
+    margin:0;
+    line-height:1.15;
+    color:#fff;
+  }
+  #search{
+    margin: 14px 22px;
+    position:relative;
+  }
+  #search input{
+    width:100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    color:#fff;
+    border-radius:8px;
+    padding: 9px 12px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+  }
+  #search input::placeholder{ color: rgba(255,255,255,0.45); }
+
+  /* Twi toggle in sidebar */
+  #twi-toggle-wrap{
+    margin: 0 22px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius:8px;
+    padding: 9px 12px;
+  }
+  #twi-toggle-wrap span{
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    color:#E8E2D2;
+  }
+  #toggle-twi{
+    position:relative;
+    width:38px; height:21px;
+    border-radius:12px;
+    background: rgba(255,255,255,0.18);
+    border:none;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  #toggle-twi::after{
+    content:"";
+    position:absolute;
+    top:2px; left:2px;
+    width:17px; height:17px;
+    border-radius:50%;
+    background:#E8E2D2;
+    transition: transform .15s ease;
+  }
+  #toggle-twi.on{ background: var(--gold); }
+  #toggle-twi.on::after{ transform: translateX(17px); background:#fff; }
+
+  #book-list{
+    flex:1;
+    overflow-y:auto;
+    padding: 4px 10px 20px;
+  }
+  #book-list::-webkit-scrollbar{ width:8px; }
+  #book-list::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.15); border-radius:4px; }
+
+  .testament-label{
+    font-family:'Inter',sans-serif;
+    font-size:10.5px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color: rgba(232,226,210,0.5);
+    margin: 18px 12px 6px;
+  }
+  .testament-label:first-child{ margin-top:6px; }
+
+  .book-btn{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    color:#E8E2D2;
+    font-family:'EB Garamond', serif;
+    font-size: 16px;
+    padding: 7px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    line-height:1.3;
+  }
+  .book-btn:hover{ background: rgba(255,255,255,0.06); }
+  .book-btn.active{
+    background: rgba(166,128,46,0.22);
+    color: #F4E9CE;
+  }
+  .book-btn .count{
+    float:right;
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    color: rgba(232,226,210,0.4);
+  }
+
+  .chapter-grid{
+    display:grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap:6px;
+    padding: 6px 12px 14px;
+  }
+  .chapter-grid button{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color:#E8E2D2;
+    border-radius:5px;
+    padding: 6px 0;
+    cursor:pointer;
+  }
+  .chapter-grid button:hover{ background: rgba(166,128,46,0.3); }
+  .chapter-grid button.active{
+    background: var(--gold);
+    color: var(--teal-deep);
+    font-weight:600;
+    border-color: var(--gold);
+  }
+
+  /* ---------- Main reading pane ---------- */
+  #main{
+    flex:1;
+    height:100vh;
+    overflow-y:auto;
+    background:
+      radial-gradient(ellipse at top left, var(--parchment-deep) 0%, var(--parchment) 45%);
+    position:relative;
+  }
+  #main::before{
+    content:"";
+    position:fixed;
+    top:0; left:300px; right:0; height:100vh;
+    pointer-events:none;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, rgba(0,0,0,0.015) 1px, transparent 1px, transparent 3px);
+    mix-blend-mode:multiply;
+  }
+
+  .reader-inner{
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 56px 40px 120px;
+    position:relative;
+    transition: max-width .2s ease;
+  }
+  .reader-inner.bilingual{ max-width: 980px; }
+
+  .topbar{
+    position:sticky;
+    top:0;
+    background: linear-gradient(var(--parchment) 70%, transparent);
+    padding: 14px 40px 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    z-index:5;
+  }
+  .nav-btn{
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    letter-spacing:.04em;
+    background:none;
+    border:1px solid var(--ink);
+    color: var(--ink);
+    padding: 7px 14px;
+    border-radius: 20px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .nav-btn:hover{ background: var(--ink); color: var(--parchment); }
+  .translation-tag{
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color: var(--ink-soft);
+  }
+
+  .chapter-heading{
+    text-align:center;
+    margin-bottom: 40px;
+  }
+  .chapter-heading .book-name{
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color: var(--rubric);
+    margin-bottom:10px;
+  }
+  .chapter-heading .chapter-num{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size: 54px;
+    color: var(--ink);
+    line-height:1;
+  }
+  .chapter-heading .ornament{
+    color: var(--gold);
+    font-size: 18px;
+    margin-top: 10px;
+    letter-spacing: .3em;
+  }
+
+  .bilingual-note{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    line-height:1.5;
+    color: var(--ink-soft);
+    background: rgba(166,128,46,0.1);
+    border: 1px solid rgba(166,128,46,0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 28px;
+  }
+  .col-headers{
+    display:none;
+    grid-template-columns: 1fr 6px 1fr;
+    font-family:'Inter',sans-serif;
+    font-size:10.5px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .col-headers.show{ display:grid; }
+  .col-headers .h-tw{ padding-left: 20px; }
+
+  #verses{
+    font-family:'EB Garamond', serif;
+    font-size: 20px;
+    line-height: 1.85;
+    color: var(--ink);
+  }
+  #verses .verse{
+    margin: 0;
+  }
+  #verses .vnum{
+    font-family:'Inter',sans-serif;
+    font-size: 12px;
+    font-weight:600;
+    color: var(--rubric);
+    vertical-align: super;
+    margin-right: 3px;
+  }
+  #verses .verse.first-of-chapter .vnum{ display:none; }
+  #verses .dropcap{
+    float:left;
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size: 74px;
+    line-height: 60px;
+    padding: 4px 8px 0 0;
+    color: var(--rubric);
+  }
+  .verse:hover .vnum{ color: var(--gold); }
+
+  /* Bilingual verse rows */
+  .verse-bi{
+    display:grid;
+    grid-template-columns: 1fr 6px 1fr;
+    gap:0;
+    margin-bottom: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    align-items:start;
+  }
+  .verse-bi .kv-rule{
+    background: repeating-linear-gradient(180deg, var(--gold) 0 8px, var(--rubric) 8px 12px, var(--teal) 12px 18px, var(--ink) 18px 20px);
+    align-self:stretch;
+    border-radius:3px;
+    opacity:0.6;
+  }
+  .verse-bi .col-en, .verse-bi .col-tw{ padding: 0 18px; }
+  .verse-bi .col-en:first-child{ padding-left:0; }
+  .verse-bi p.vtext{ margin:0; }
+  .verse-bi .col-tw p.vtext{ min-height: 1.4em; }
+  .verse-bi .tw-status{
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    color: rgba(87,80,63,0.55);
+    font-style: italic;
+  }
+  .verse-bi .tw-badge{
+    display:inline-block;
+    font-family:'Inter',sans-serif;
+    font-size:9.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    font-weight:600;
+    padding: 1px 7px;
+    border-radius: 999px;
+    margin-bottom: 5px;
+  }
+  .tw-badge.mt{ background: rgba(140,47,43,0.1); color: var(--rubric); }
+  .tw-badge.mine{ background: rgba(31,59,60,0.12); color: var(--teal); }
+
+  .tw-edit-btn{
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    background:none;
+    border:none;
+    color: var(--ink-soft);
+    text-decoration: underline;
+    cursor:pointer;
+    padding:0;
+    margin-top:4px;
+  }
+  .tw-edit-btn:hover{ color: var(--rubric); }
+  .tw-edit-row{ margin-top:6px; }
+  .tw-edit-row textarea{
+    width:100%;
+    min-height:70px;
+    font-family:'EB Garamond', serif;
+    font-size:16px;
+    padding: 6px 8px;
+    border-radius:6px;
+    border: 1px solid rgba(38,34,27,0.25);
+    resize:vertical;
+  }
+  .tw-edit-actions{ display:flex; gap:8px; margin-top:6px; }
+  .tw-btn-small{
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    padding: 4px 10px;
+    border-radius:5px;
+    border: 1px solid rgba(38,34,27,0.25);
+    background:none;
+    color: var(--ink);
+    cursor:pointer;
+  }
+  .tw-btn-small.primary{ background: var(--teal); color:#fff; border-color: var(--teal); }
+
+  @media (max-width: 860px){
+    .verse-bi{ grid-template-columns: 1fr; gap:8px; }
+    .verse-bi .kv-rule{ display:none; }
+    .verse-bi .col-tw{ padding-left:0; border-left: 2px solid rgba(166,128,46,0.3); padding-left:12px; }
+    .col-headers{ display:none !important; }
+  }
+
+  .state-msg{
+    font-family:'Inter',sans-serif;
+    text-align:center;
+    color: var(--ink-soft);
+    padding: 80px 20px;
+    font-size:14px;
+  }
+  .spinner{
+    width:26px; height:26px;
+    border-radius:50%;
+    border: 2px solid rgba(140,47,43,0.2);
+    border-top-color: var(--rubric);
+    margin: 0 auto 16px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  #translate-status{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    color: var(--ink-soft);
+    text-align:center;
+    margin-bottom:18px;
+    min-height:1.2em;
+  }
+
+  .chapter-footer-nav{
+    display:flex;
+    justify-content:space-between;
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0,0,0,0.12);
+  }
+  .chapter-footer-nav button{
+    font-family:'Inter',sans-serif;
+    background:none;
+    border:none;
+    color: var(--ink-soft);
+    font-size: 13px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .chapter-footer-nav button:hover{ color: var(--rubric); }
+  .chapter-footer-nav button:disabled{ opacity:0.25; cursor:default; }
+  .chapter-footer-nav button:disabled:hover{ color: var(--ink-soft); }
+
+  #menu-toggle{ display:none; }
+  @media (max-width: 860px){
+    #sidebar{
+      position:fixed;
+      z-index:20;
+      transform: translateX(-100%);
+      transition: transform .25s ease;
+      box-shadow: 8px 0 30px rgba(0,0,0,0.4);
+    }
+    #sidebar.open{ transform: translateX(0); }
+    #menu-toggle{
+      display:flex;
+      position:fixed;
+      top:16px; left:16px;
+      z-index:25;
+      background: var(--teal);
+      color:#fff;
+      border:none;
+      width:38px; height:38px;
+      border-radius:8px;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      font-size:16px;
+    }
+    #main::before{ left:0; }
+    .reader-inner{ padding: 90px 22px 100px; }
+    .reader-inner.bilingual{ max-width:700px; }
+    .topbar{ padding: 14px 22px 10px; }
+    #overlay{
+      display:none;
+      position:fixed; inset:0;
+      background: rgba(0,0,0,0.4);
+      z-index:15;
+    }
+    #overlay.show{ display:block; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<button id="menu-toggle" aria-label="Open book navigator">☰</button>
+<div id="overlay"></div>
+
+<nav id="sidebar" aria-label="Book and chapter navigation">
+  <div class="brand">
+    <p class="eyebrow" id="brand-eyebrow">King James Version</p>
+    <h1>The Holy Bible</h1>
+  </div>
+  <div id="search">
+    <input type="text" id="search-input" placeholder="Find a book…" aria-label="Search books">
+  </div>
+  <div id="twi-toggle-wrap">
+    <span>Show Twi translation</span>
+    <button id="toggle-twi" aria-pressed="false" aria-label="Toggle Twi translation"></button>
+  </div>
+  <div id="book-list"></div>
+</nav>
+
+<main id="main">
+  <div class="topbar">
+    <button class="nav-btn" id="prev-chapter">← Prev</button>
+    <span class="translation-tag" id="ref-tag">Genesis 1</span>
+    <button class="nav-btn" id="next-chapter">Next →</button>
+  </div>
+  <div class="reader-inner" id="reader-inner">
+    <div class="chapter-heading">
+      <div class="book-name" id="book-name-label">GENESIS</div>
+      <div class="chapter-num" id="chapter-num-label">1</div>
+      <div class="ornament">✦ ✦ ✦</div>
+    </div>
+    <div class="bilingual-note" id="bilingual-note" style="display:none">
+      Twi translations are machine-generated and unverified — Twi is a lower-resource language for automated translation, so accuracy will vary. Click <strong>edit</strong> under any verse to correct it and save your own version; it will load automatically next time.
+    </div>
+    <div class="col-headers" id="col-headers">
+      <div>English · KJV</div>
+      <div></div>
+      <div class="h-tw">Twi</div>
+    </div>
+    <div id="translate-status"></div>
+    <div id="verses">
+      <div class="state-msg"><div class="spinner"></div>Loading scripture…</div>
+    </div>
+    <div class="chapter-footer-nav">
+      <button id="prev-chapter-b">← Previous chapter</button>
+      <button id="next-chapter-b">Next chapter →</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const BOOKS = [
+  ["Genesis",50,"Old"],["Exodus",40,"Old"],["Leviticus",27,"Old"],["Numbers",36,"Old"],
+  ["Deuteronomy",34,"Old"],["Joshua",24,"Old"],["Judges",21,"Old"],["Ruth",4,"Old"],
+  ["1 Samuel",31,"Old"],["2 Samuel",24,"Old"],["1 Kings",22,"Old"],["2 Kings",25,"Old"],
+  ["1 Chronicles",29,"Old"],["2 Chronicles",36,"Old"],["Ezra",10,"Old"],["Nehemiah",13,"Old"],
+  ["Esther",10,"Old"],["Job",42,"Old"],["Psalms",150,"Old"],["Proverbs",31,"Old"],
+  ["Ecclesiastes",12,"Old"],["Song of Solomon",8,"Old"],["Isaiah",66,"Old"],["Jeremiah",52,"Old"],
+  ["Lamentations",5,"Old"],["Ezekiel",48,"Old"],["Daniel",12,"Old"],["Hosea",14,"Old"],
+  ["Joel",3,"Old"],["Amos",9,"Old"],["Obadiah",1,"Old"],["Jonah",4,"Old"],
+  ["Micah",7,"Old"],["Nahum",3,"Old"],["Habakkuk",3,"Old"],["Zephaniah",3,"Old"],
+  ["Haggai",2,"Old"],["Zechariah",14,"Old"],["Malachi",4,"Old"],
+  ["Matthew",28,"New"],["Mark",16,"New"],["Luke",24,"New"],["John",21,"New"],
+  ["Acts",28,"New"],["Romans",16,"New"],["1 Corinthians",16,"New"],["2 Corinthians",13,"New"],
+  ["Galatians",6,"New"],["Ephesians",6,"New"],["Philippians",4,"New"],["Colossians",4,"New"],
+  ["1 Thessalonians",5,"New"],["2 Thessalonians",3,"New"],["1 Timothy",6,"New"],["2 Timothy",4,"New"],
+  ["Titus",3,"New"],["Philemon",1,"New"],["Hebrews",13,"New"],["James",5,"New"],
+  ["1 Peter",5,"New"],["2 Peter",3,"New"],["1 John",5,"New"],["2 John",1,"New"],
+  ["3 John",1,"New"],["Jude",1,"New"],["Revelation",22,"New"]
+];
+
+let state = { book: "Genesis", chapter: 1, verses: [] };
+let bilingualOn = false;
+let loadToken = 0;
+
+const bookListEl = document.getElementById('book-list');
+const versesEl = document.getElementById('verses');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+const readerInner = document.getElementById('reader-inner');
+const colHeaders = document.getElementById('col-headers');
+const bilingualNote = document.getElementById('bilingual-note');
+const translateStatus = document.getElementById('translate-status');
+const brandEyebrow = document.getElementById('brand-eyebrow');
+const toggleTwiBtn = document.getElementById('toggle-twi');
+
+/* ---------- Twi storage helpers ---------- */
+function twiKey(book, chapter, verse){
+  return 'twi:' + book.toLowerCase().replace(/\s+/g,'_') + ':' + chapter + ':' + verse;
+}
+async function getSavedTwi(book, chapter, verse){
+  try{
+    const r = await window.storage.get(twiKey(book, chapter, verse), false);
+    return r ? JSON.parse(r.value) : null;
+  }catch(e){ return null; }
+}
+async function saveTwi(book, chapter, verse, text){
+  try{
+    await window.storage.set(twiKey(book, chapter, verse), JSON.stringify({ text, savedAt: Date.now() }), false);
+    return true;
+  }catch(e){ return false; }
+}
+async function resetTwi(book, chapter, verse){
+  try{ await window.storage.delete(twiKey(book, chapter, verse), false); return true; }
+  catch(e){ return false; }
+}
+async function translateToTwi(text){
+  const trimmed = text.length > 480 ? text.slice(0,480) : text;
+  const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(trimmed) + '&langpair=en|tw';
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('Translation service unavailable');
+  const data = await res.json();
+  const t = data && data.responseData && data.responseData.translatedText;
+  if(!t) throw new Error('No translation returned');
+  return t;
+}
+
+/* ---------- Sidebar / navigation ---------- */
+function renderBookList(filter=""){
+  bookListEl.innerHTML = "";
+  let lastTestament = null;
+  BOOKS.forEach(([name, chapters, testament]) => {
+    if (filter && !name.toLowerCase().includes(filter.toLowerCase())) return;
+    if (testament !== lastTestament){
+      const label = document.createElement('div');
+      label.className = 'testament-label';
+      label.textContent = testament === "Old" ? "Old Testament" : "New Testament";
+      bookListEl.appendChild(label);
+      lastTestament = testament;
+    }
+    const btn = document.createElement('button');
+    btn.className = 'book-btn' + (name === state.book ? ' active' : '');
+    btn.innerHTML = `${name}<span class="count">${chapters}</span>`;
+    btn.addEventListener('click', () => selectBook(name));
+    bookListEl.appendChild(btn);
+
+    if (name === state.book){
+      const grid = document.createElement('div');
+      grid.className = 'chapter-grid';
+      for (let c = 1; c <= chapters; c++){
+        const cbtn = document.createElement('button');
+        cbtn.textContent = c;
+        if (c === state.chapter) cbtn.classList.add('active');
+        cbtn.addEventListener('click', () => loadChapter(name, c));
+        grid.appendChild(cbtn);
+      }
+      bookListEl.appendChild(grid);
+    }
+  });
+}
+
+function selectBook(name){
+  state.book = name;
+  state.chapter = 1;
+  renderBookList(document.getElementById('search-input').value);
+  loadChapter(name, 1);
+}
+function bookMeta(name){ return BOOKS.find(b => b[0] === name); }
+
+/* ---------- Chapter loading ---------- */
+async function loadChapter(book, chapter){
+  const myToken = ++loadToken;
+  state.book = book;
+  state.chapter = chapter;
+  renderBookList(document.getElementById('search-input').value);
+  closeSidebarMobile();
+
+  document.getElementById('book-name-label').textContent = book.toUpperCase();
+  document.getElementById('chapter-num-label').textContent = chapter;
+  document.getElementById('ref-tag').textContent = `${book} ${chapter}`;
+  versesEl.innerHTML = `<div class="state-msg"><div class="spinner"></div>Loading scripture…</div>`;
+  translateStatus.textContent = '';
+  document.getElementById('main').scrollTo(0,0);
+
+  const slug = encodeURIComponent(book.toLowerCase().replace(/\s+/g,'+'));
+  const url = `https://bible-api.com/${slug}+${chapter}?translation=kjv`;
+
+  try{
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Network response was not ok');
+    const data = await res.json();
+    if(!data.verses || !data.verses.length) throw new Error('No verses returned');
+    if(myToken !== loadToken) return;
+    state.verses = data.verses;
+    renderCurrentMode();
+  }catch(err){
+    if(myToken !== loadToken) return;
+    versesEl.innerHTML = `<div class="state-msg">Could not load this chapter right now.<br>Please check your connection and try again.</div>`;
+  }
+  updateNavButtons();
+}
+
+function renderCurrentMode(){
+  if(bilingualOn){
+    colHeaders.classList.add('show');
+    bilingualNote.style.display = 'block';
+    readerInner.classList.add('bilingual');
+    renderVersesBilingual(state.verses);
+  } else {
+    colHeaders.classList.remove('show');
+    bilingualNote.style.display = 'none';
+    readerInner.classList.remove('bilingual');
+    renderVersesEnglishOnly(state.verses);
+  }
+}
+
+/* ---------- English-only rendering (original) ---------- */
+function renderVersesEnglishOnly(verses){
+  let html = "";
+  verses.forEach((v, i) => {
+    let text = v.text.trim();
+    if (i === 0){
+      const first = text.charAt(0);
+      const rest = text.slice(1);
+      html += `<p class="verse first-of-chapter"><span class="vnum">${v.verse}</span><span class="dropcap">${first}</span>${rest} </p>`;
+    } else {
+      html += `<p class="verse"><span class="vnum">${v.verse}</span>${text} </p>`;
+    }
+  });
+  versesEl.innerHTML = html;
+}
+
+/* ---------- Bilingual rendering ---------- */
+function renderVersesBilingual(verses){
+  const myToken = loadToken;
+  let html = "";
+  verses.forEach((v) => {
+    const text = v.text.trim();
+    html += `
+      <div class="verse-bi" data-verse="${v.verse}">
+        <div class="col-en">
+          <p class="vtext"><span class="vnum">${v.verse}</span>${text}</p>
+        </div>
+        <div class="kv-rule"></div>
+        <div class="col-tw">
+          <div class="tw-body">
+            <p class="tw-status">Translating…</p>
+          </div>
+        </div>
+      </div>`;
+  });
+  versesEl.innerHTML = html;
+  fillTranslations(state.book, state.chapter, verses, myToken);
+}
+
+async function fillTranslations(book, chapter, verses, myToken){
+  for(let i = 0; i < verses.length; i++){
+    if(myToken !== loadToken) return; // chapter/mode changed, abandon
+    translateStatus.textContent = `Translating verse ${i+1} of ${verses.length}…`;
+    const v = verses[i];
+    const englishText = v.text.trim();
+    const row = versesEl.querySelector(`.verse-bi[data-verse="${v.verse}"] .tw-body`);
+    if(!row) continue;
+
+    const saved = await getSavedTwi(book, chapter, v.verse);
+    if(myToken !== loadToken) return;
+
+    if(saved && saved.text){
+      renderTwiCell(row, book, chapter, v.verse, englishText, saved.text, true);
+      continue;
+    }
+
+    try{
+      const twi = await translateToTwi(englishText);
+      if(myToken !== loadToken) return;
+      renderTwiCell(row, book, chapter, v.verse, englishText, twi, false);
+    }catch(e){
+      if(myToken !== loadToken) return;
+      row.innerHTML = `<p class="tw-status">Translation unavailable for this verse.</p>
+        <button class="tw-edit-btn" data-action="edit">Add your own translation</button>`;
+      wireEditButton(row, book, chapter, v.verse, englishText, '');
+    }
+    await new Promise(r => setTimeout(r, 180)); // be gentle with the free API
+  }
+  if(myToken === loadToken) translateStatus.textContent = '';
+}
+
+function renderTwiCell(row, book, chapter, verse, englishText, twiText, mine){
+  row.innerHTML = `
+    <span class="tw-badge ${mine ? 'mine' : 'mt'}">${mine ? 'Your translation' : 'Machine translation'}</span>
+    <p class="vtext">${twiText}</p>
+    <button class="tw-edit-btn" data-action="edit">Edit</button>
+    ${mine ? '<button class="tw-edit-btn" data-action="reset" style="margin-left:10px">Reset</button>' : ''}
+  `;
+  wireEditButton(row, book, chapter, verse, englishText, twiText);
+  const resetBtn = row.querySelector('[data-action="reset"]');
+  if(resetBtn){
+    resetBtn.addEventListener('click', async () => {
+      await resetTwi(book, chapter, verse);
+      row.innerHTML = `<p class="tw-status">Translating…</p>`;
+      try{
+        const twi = await translateToTwi(englishText);
+        renderTwiCell(row, book, chapter, verse, englishText, twi, false);
+      }catch(e){
+        row.innerHTML = `<p class="tw-status">Translation unavailable for this verse.</p>
+          <button class="tw-edit-btn" data-action="edit">Add your own translation</button>`;
+        wireEditButton(row, book, chapter, verse, englishText, '');
+      }
+    });
+  }
+}
+
+function wireEditButton(row, book, chapter, verse, englishText, currentTwi){
+  const editBtn = row.querySelector('[data-action="edit"]');
+  if(!editBtn) return;
+  editBtn.addEventListener('click', () => {
+    const editRow = document.createElement('div');
+    editRow.className = 'tw-edit-row';
+    editRow.innerHTML = `
+      <textarea>${currentTwi}</textarea>
+      <div class="tw-edit-actions">
+        <button class="tw-btn-small primary" data-action="save">Save</button>
+        <button class="tw-btn-small" data-action="cancel">Cancel</button>
+      </div>
+    `;
+    row.appendChild(editRow);
+    editBtn.style.display = 'none';
+    const resetBtn = row.querySelector('[data-action="reset"]');
+    if(resetBtn) resetBtn.style.display = 'none';
+
+    editRow.querySelector('[data-action="cancel"]').addEventListener('click', () => editRow.remove());
+    editRow.querySelector('[data-action="save"]').addEventListener('click', async () => {
+      const val = editRow.querySelector('textarea').value.trim();
+      if(!val) return;
+      const ok = await saveTwi(book, chapter, verse, val);
+      if(ok){
+        renderTwiCell(row, book, chapter, verse, englishText, val, true);
+      }
+    });
+    editRow.querySelector('textarea').focus();
+  });
+}
+
+/* ---------- Toggle & nav wiring ---------- */
+toggleTwiBtn.addEventListener('click', () => {
+  bilingualOn = !bilingualOn;
+  toggleTwiBtn.classList.toggle('on', bilingualOn);
+  toggleTwiBtn.setAttribute('aria-pressed', String(bilingualOn));
+  brandEyebrow.textContent = bilingualOn ? 'King James Version + Twi' : 'King James Version';
+  loadToken++; // invalidate any in-flight translation loop from previous mode
+  renderCurrentMode();
+});
+
+function updateNavButtons(){
+  const meta = bookMeta(state.book);
+  const bIdx = BOOKS.findIndex(b => b[0] === state.book);
+  const atVeryFirst = bIdx === 0 && state.chapter === 1;
+  const atVeryLast = bIdx === BOOKS.length - 1 && state.chapter === meta[1];
+  [document.getElementById('prev-chapter'), document.getElementById('prev-chapter-b')].forEach(b => b.disabled = atVeryFirst);
+  [document.getElementById('next-chapter'), document.getElementById('next-chapter-b')].forEach(b => b.disabled = atVeryLast);
+}
+function goPrev(){
+  const bIdx = BOOKS.findIndex(b => b[0] === state.book);
+  if (state.chapter > 1){
+    loadChapter(state.book, state.chapter - 1);
+  } else if (bIdx > 0){
+    const prevBook = BOOKS[bIdx-1];
+    loadChapter(prevBook[0], prevBook[1]);
+  }
+}
+function goNext(){
+  const meta = bookMeta(state.book);
+  const bIdx = BOOKS.findIndex(b => b[0] === state.book);
+  if (state.chapter < meta[1]){
+    loadChapter(state.book, state.chapter + 1);
+  } else if (bIdx < BOOKS.length - 1){
+    loadChapter(BOOKS[bIdx+1][0], 1);
+  }
+}
+document.getElementById('prev-chapter').addEventListener('click', goPrev);
+document.getElementById('next-chapter').addEventListener('click', goNext);
+document.getElementById('prev-chapter-b').addEventListener('click', goPrev);
+document.getElementById('next-chapter-b').addEventListener('click', goNext);
+document.getElementById('search-input').addEventListener('input', (e) => renderBookList(e.target.value));
+
+const menuToggle = document.getElementById('menu-toggle');
+menuToggle.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+});
+overlay.addEventListener('click', closeSidebarMobile);
+function closeSidebarMobile(){
+  if (window.innerWidth <= 860){
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  }
+}
+
+renderBookList();
+loadChapter("Genesis", 1);
+</script>
+
+</body>
+</html>

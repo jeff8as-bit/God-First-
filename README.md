@@ -1,2 +1,2 @@
-# God-First-
-Excited about the Word of God
+God-First-
+└── index.html
